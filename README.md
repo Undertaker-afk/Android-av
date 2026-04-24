@@ -10,6 +10,7 @@ Trinity-AV is a multi-module Android antivirus project with a Kotlin/Compose fro
 - Detection categories for malware, ransomware, RAT, and suspicious archives.
 - Controlled folder access policy seeds for `/sdcard/Documents`, `/sdcard/DCIM`, `/sdcard/Download`.
 - Whitelist package storage and excluded path storage through DataStore.
+- Native-backed first-run sandbox flow for new apps (3-minute WIP observation window + post-analysis verdict).
 - Quarantine encryption with AES before moving files into app-private storage.
 - JNI scanner that loads signature strings from `signatures.db` and scans files/byte streams.
 

@@ -5,6 +5,9 @@ import com.youravapp.data.datastore.SettingsStore
 import com.youravapp.data.jni.ClamAvNativeBridge
 import com.youravapp.data.shizuku.SystemPackageProxy
 import com.youravapp.domain.model.InstalledApp
+import com.youravapp.domain.model.SandboxAnalysis
+import com.youravapp.domain.model.SandboxSession
+import com.youravapp.domain.model.SandboxVerdict
 import com.youravapp.domain.model.ScanProgress
 import com.youravapp.domain.model.ThreatAction
 import com.youravapp.domain.model.ThreatCategory
@@ -154,6 +157,37 @@ class AppRepositoryImpl(
 
     suspend fun emitProcessStart(packageName: String) {
         processEvents.emit(packageName)
+    }
+
+    override suspend fun startSandbox(packageName: String, durationMs: Long): Result<SandboxSession> = runCatching {
+        val started = withContext(Dispatchers.IO) { ClamAvNativeBridge.startSandbox(packageName) }
+        check(started) { "Native sandbox start failed for $packageName" }
+        SandboxSession(packageName = packageName, startedAt = System.currentTimeMillis(), durationMs = durationMs)
+    }
+
+    override suspend fun stopSandbox(packageName: String): Result<Unit> = runCatching {
+        val stopped = withContext(Dispatchers.IO) { ClamAvNativeBridge.stopSandbox(packageName) }
+        check(stopped) { "Native sandbox stop failed for $packageName" }
+    }
+
+    override suspend fun analyzeSandbox(packageName: String): Result<SandboxAnalysis> = runCatching {
+        val raw = withContext(Dispatchers.IO) { ClamAvNativeBridge.analyzeSandbox(packageName) }
+        parseSandboxAnalysis(packageName, raw)
+    }
+
+    private fun parseSandboxAnalysis(packageName: String, raw: String): SandboxAnalysis {
+        val parts = raw.split(';').mapNotNull {
+            val idx = it.indexOf('=')
+            if (idx < 0) null else it.substring(0, idx) to it.substring(idx + 1)
+        }.toMap()
+        val score = parts["score"]?.toIntOrNull() ?: 0
+        val verdict = when (parts["verdict"]?.uppercase()) {
+            "BLOCK" -> SandboxVerdict.BLOCK
+            "REVIEW" -> SandboxVerdict.REVIEW
+            else -> SandboxVerdict.SAFE
+        }
+        val findings = parts["findings"]?.split(',') ?: listOf("No findings")
+        return SandboxAnalysis(packageName, score, verdict, findings)
     }
 }
 

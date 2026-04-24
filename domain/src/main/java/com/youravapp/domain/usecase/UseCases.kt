@@ -5,6 +5,7 @@ import com.youravapp.domain.model.ThreatAction
 import com.youravapp.domain.model.ThreatDetection
 import com.youravapp.domain.model.ThreatPolicy
 import com.youravapp.domain.model.ViolationAction
+import com.youravapp.domain.model.SandboxAnalysis
 import com.youravapp.domain.repository.IAppRepository
 import com.youravapp.domain.repository.IPolicyRepository
 import com.youravapp.domain.repository.IQuarantineRepository
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.delay
 
 class ScanFilesUseCase(
     private val scanRepository: IScanRepository,
@@ -81,5 +83,14 @@ class MonitorProcessesUseCase(
             val app = apps[pkg] ?: return@collectLatest
             evaluatePolicyUseCase.evaluate(app).firstOrNull()?.let { emit(pkg to it.second) }
         }
+    }
+}
+
+class RunSandboxForNewAppUseCase(private val appRepository: IAppRepository) {
+    suspend operator fun invoke(packageName: String, durationMs: Long = 180_000L): Result<SandboxAnalysis> = runCatching {
+        appRepository.startSandbox(packageName, durationMs).getOrThrow()
+        delay(durationMs)
+        appRepository.stopSandbox(packageName).getOrThrow()
+        appRepository.analyzeSandbox(packageName).getOrThrow()
     }
 }

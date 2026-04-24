@@ -57,3 +57,21 @@ data class PolicyMatcher(
 )
 
 enum class ViolationAction { BLOCK_AND_PROMPT, FORCE_STOP, REVOKE_PERMISSION, QUARANTINE_APK }
+
+data class SandboxSession(
+    val packageName: String,
+    val startedAt: Long,
+    val durationMs: Long,
+    val events: List<String> = emptyList(),
+    val suspiciousCount: Int = 0,
+    val completed: Boolean = false
+)
+
+data class SandboxAnalysis(
+    val packageName: String,
+    val score: Int,
+    val verdict: SandboxVerdict,
+    val findings: List<String>
+)
+
+enum class SandboxVerdict { SAFE, REVIEW, BLOCK }

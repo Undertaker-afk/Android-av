@@ -17,6 +17,7 @@ import com.youravapp.domain.usecase.EvaluatePolicyUseCase
 import com.youravapp.domain.usecase.GetInstalledAppsUseCase
 import com.youravapp.domain.usecase.ScanFilesUseCase
 import com.youravapp.domain.usecase.ToggleComponentUseCase
+import com.youravapp.domain.usecase.RunSandboxForNewAppUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -60,5 +61,6 @@ object AppModule {
 
     @Provides fun provideInstalledUseCase(app: IAppRepository) = GetInstalledAppsUseCase(app)
     @Provides fun provideToggleUseCase(app: IAppRepository) = ToggleComponentUseCase(app)
+    @Provides fun provideSandboxUseCase(app: IAppRepository) = RunSandboxForNewAppUseCase(app)
     @Provides fun provideEvalPolicyUseCase(policy: IPolicyRepository) = EvaluatePolicyUseCase(policy)
 }

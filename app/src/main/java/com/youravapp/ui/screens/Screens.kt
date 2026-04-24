@@ -53,6 +53,8 @@ fun ScanScreen(viewModel: ScanViewModel = hiltViewModel()) {
 fun AppsScreen(viewModel: AppListViewModel = hiltViewModel()) {
     val apps by viewModel.apps.collectAsState()
     val whitelist by viewModel.whitelist.collectAsState()
+    val sandboxing by viewModel.sandboxing.collectAsState()
+    val sandboxResults by viewModel.sandboxResults.collectAsState()
     LaunchedEffect(Unit) { viewModel.loadApps() }
     LazyColumn(Modifier.fillMaxSize().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(apps) { app ->
@@ -64,6 +66,16 @@ fun AppsScreen(viewModel: AppListViewModel = hiltViewModel()) {
                     Text(if (whitelist.contains(app.packageName)) "Trusted by whitelist" else "Untrusted")
                     Button(onClick = { viewModel.toggleWhitelist(app.packageName) }) {
                         Text(if (whitelist.contains(app.packageName)) "Remove from whitelist" else "Add to whitelist")
+                    }
+                    Button(
+                        enabled = !sandboxing.contains(app.packageName),
+                        onClick = { viewModel.runSandbox(app.packageName) }
+                    ) {
+                        Text(if (sandboxing.contains(app.packageName)) "Sandboxing (3 min)..." else "Run first-launch sandbox")
+                    }
+                    sandboxResults[app.packageName]?.let { analysis ->
+                        Text("Sandbox verdict: ${analysis.verdict} (${analysis.score})")
+                        Text("Findings: ${analysis.findings.joinToString()}")
                     }
                 }
             }

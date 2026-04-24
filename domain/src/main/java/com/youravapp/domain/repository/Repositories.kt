@@ -5,6 +5,8 @@ import com.youravapp.domain.model.ScanProgress
 import com.youravapp.domain.model.ThreatAction
 import com.youravapp.domain.model.ThreatDetection
 import com.youravapp.domain.model.ThreatPolicy
+import com.youravapp.domain.model.SandboxAnalysis
+import com.youravapp.domain.model.SandboxSession
 import kotlinx.coroutines.flow.Flow
 
 interface IScanRepository {
@@ -23,6 +25,9 @@ interface IAppRepository {
     suspend fun removeFromWhitelist(packageName: String): Result<Unit>
     fun whitelistPackages(): Flow<Set<String>>
     fun monitorProcessStarts(): Flow<String>
+    suspend fun startSandbox(packageName: String, durationMs: Long = 180_000L): Result<SandboxSession>
+    suspend fun stopSandbox(packageName: String): Result<Unit>
+    suspend fun analyzeSandbox(packageName: String): Result<SandboxAnalysis>
 }
 
 interface IQuarantineRepository {

@@ -13,6 +13,9 @@ object ClamAvNativeBridge {
     external fun scanFile(filePath: String): String
     external fun scanBytes(name: String, content: ByteArray): String
     external fun updateDatabase(url: String): Boolean
+    external fun startSandbox(packageName: String): Boolean
+    external fun stopSandbox(packageName: String): Boolean
+    external fun analyzeSandbox(packageName: String): String
 
     suspend fun scan(filePath: String): String = withContext(Dispatchers.IO) { scanFile(filePath) }
 }
